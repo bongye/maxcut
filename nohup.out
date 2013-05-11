@@ -1,0 +1,2 @@
+./average.sh: line 14:  7602 죽었음               ./maxcut ./maxcut50.txt ./data.out $pool_size $crossover $mutation_rate $replace_policy $convergence_threshold >> "${file}" 10 0 0.1 1 0.5
+./average.sh: line 14:  8600 죽었음               ./maxcut ./maxcut50.txt ./data.out $pool_size $crossover $mutation_rate $replace_policy $convergence_threshold >> "${file}" 10 0 0.1 2 0.5
