@@ -6,14 +6,15 @@
 
 #include <utility>
 #include <vector>
+#include <map>
 
 #include <ostream>
 #include <iostream>
 
-#define TIME_LIMIT 170
+#define TIME_LIMIT 30
 #define SHOW_LOG 0
-#define RELEASE 1
-#define EXPERIMENT 0
+#define RELEASE 0
+#define EXPERIMENT 1
 #define POPULATION_SIZE 10
 #define CROSSOVER 0
 #define MUTATION_RATE 0.3

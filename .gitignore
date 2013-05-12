@@ -1,2 +1,7 @@
 *.swp
 *.o
+data.in
+data.out
+nohup.out
+maxcut
+experiment*

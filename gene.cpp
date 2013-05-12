@@ -1,6 +1,7 @@
 #include "gene.h"
 
 vector<pair<pair<int, int>, int> > * Gene::_edges = NULL;
+multimap<int, pair<int, int> > * Gene::_links = NULL;
 
 void Gene::generate(int size) {
 	_v.resize(size);
@@ -103,6 +104,40 @@ void Gene::print(ostream &os) {
 		}
 	}
 	os << endl;
+}
+
+void Gene::optimize(){
+	int size = _v.size();
+	vector<int> p;
+	p.resize(size);
+
+	for(int i=0; i<size; i++){
+		p[i] = i;
+	}
+	random_shuffle(p.begin(), p.end());
+
+	bool improved = true;
+	while(improved){
+		improved = false;
+		for(int i=0; i<size; i++){
+			pair<multimap<int, pair<int, int> >::iterator, multimap<int, pair<int, int> >::iterator> it_pair;
+			multimap<int, pair<int, int> >::iterator it;
+			it_pair = _links->equal_range(p[i]);
+			int delta_f = 0;
+			for(it = it_pair.first; it != it_pair.second; it++){
+				pair<int, int> l = it->second;
+				if(_v[p[i]] ^ _v[l.first]) delta_f -= l.second;
+				else delta_f += l.second;
+			}
+
+			if(delta_f > 0){
+				improved = true;
+				_v[p[i]] = !_v[p[i]];
+				_fitness += delta_f;
+				_normalize();
+			}
+		}
+	}
 }
 
 ostream &operator<<(ostream &os, const Gene& gene) {

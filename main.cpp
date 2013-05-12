@@ -1,14 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
-
-#include <utility>
-#include <vector>
 
 #include "env.h"
 #include "gene.h"
@@ -58,6 +52,8 @@ int main(int argc, char **argv) {
 	int gene_order = 0;
 	int edge_number = 0;
 	vector<pair<pair<int, int>, int> > edges;
+	multimap<int, pair<int, int> > links;
+
 
 	// input file tokenizing ..
 	if (input.is_open()) {
@@ -82,14 +78,21 @@ int main(int argc, char **argv) {
 
 				pair <int, int> p1(i-1, j-1);
 				pair <pair<int, int>, int> p2(p1, weight);
+				pair <int, int> p3(j-1, weight);
+				pair <int, pair<int, int> > p4(i-1, p3);
+				pair <int, int> p5(i-1, weight);
+				pair <int, pair<int, int> > p6(j-1, p5);
 				edges.push_back(p2);
+				links.insert(p4);
+				links.insert(p6);
 			}
 			i++;
 		}
 		input.close();
 	}
-
+	
 	Gene::initEdges(&edges);
+	Gene::initLinks(&links);
 
 #if EXPERIMENT
 	int population_size = atoi(argv[3]);
@@ -116,8 +119,6 @@ int main(int argc, char **argv) {
 	cout << "Farm : " << *population << endl;
 	cout << endl;
 #endif
-
-
 
 	while(!population->isTerminationCondition(convergence_threshold)) {
 		population->nextGeneration(xover, replace, uniform_threshold, mutation_rate);

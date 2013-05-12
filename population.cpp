@@ -19,7 +19,9 @@ Population::Population(int gene_order, int population_size) : _v(), _sumOfFitnes
 
 
 void Population::nextGeneration(Crossover xover, Replace replace, double uniform_threshold, double mutation_rate) {
-	// steady state selection. k = 1
+	vector<Gene *>::iterator it;
+
+	// crossover
 	int k = 0;
 	switch(replace) {
 		case STATIC:
@@ -47,7 +49,7 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 		_v.erase(_v.begin() + replace_position);
 	}
 
-	vector<Gene *>::iterator it;
+	// mutation
 	int mutation_count = 0;
 
 	for(it = _v.begin(); it != _v.end(); it++) {
@@ -58,6 +60,15 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 			mutation_count ++;
 			_sumOfFitness += revised_fitness - original_fitness;
 		}
+	}
+
+// local optimization
+	for(it = _v.begin(); it != _v.end(); it++){
+		Gene *gene = *it;
+		int original_fitness = gene->fitness();
+		gene->optimize();
+		int revised_fitness = gene->fitness();
+		_sumOfFitness += revised_fitness - original_fitness;
 	}
 
 #if SHOW_LOG
