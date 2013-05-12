@@ -4,6 +4,7 @@ bool compare(Gene *g1, Gene *g2) { return g1->fitness() < g2->fitness(); }
 
 Population::Population(int gene_order, int population_size) : _v(), _sumOfFitness(0) {
 	int f = 0;
+
 	_minFitness = INT_MAX;
 	for (int i=0; i<population_size; i++) {
 		Gene *g = new Gene();
@@ -14,7 +15,7 @@ Population::Population(int gene_order, int population_size) : _v(), _sumOfFitnes
 		if(_minFitness > f) _minFitness = f;
 	}
 	sort(_v.begin(), _v.end(), compare);
-	_best = _v.back();
+	_best = new Gene(_v.back());
 }
 
 
@@ -62,7 +63,7 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 		}
 	}
 
-// local optimization
+	// local optimization
 	for(it = _v.begin(); it != _v.end(); it++){
 		Gene *gene = *it;
 		int original_fitness = gene->fitness();
@@ -77,7 +78,8 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 
 	sort(_v.begin(), _v.end(), compare);
 
-	_best = _v.back();
+	if(_best) delete _best;
+	_best = new Gene( _v.back());
 	_minFitness = _v.front()->fitness();
 }
 

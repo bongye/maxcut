@@ -3,6 +3,13 @@
 vector<pair<pair<int, int>, int> > * Gene::_edges = NULL;
 multimap<int, pair<int, int> > * Gene::_links = NULL;
 
+Gene::Gene()
+{}
+
+Gene::Gene(const Gene *g) :
+	_v(g->_v), _fitness(g->_fitness)
+{}
+
 void Gene::generate(int size) {
 	_v.resize(size);
 	for (int i=0; i<size; i++) {
@@ -90,18 +97,15 @@ bool Gene::mutation(double mutation_rate) {
 
 void Gene::print(ostream &os) {
 	int size = _v.size();
-	for(int i=0; i<size; i++) {
-		if(_v[i]) {
-			os << i+1 << " ";
-		}
+	vector<bool>::iterator it = _v.begin();
+	for(it = _v.begin(); it != _v.end(); it++) {
+		if(*it) os << it - _v.begin() + 1 << " ";
 	}
 	os << endl;
 
 
-	for(int i=0; i<size; i++) {
-		if(!_v[i]) {
-			os << i+1 << " ";
-		}
+	for(it = _v.begin(); it != _v.end(); it++) {
+		if(!*it) os << it - _v.begin() + 1 << " ";
 	}
 	os << endl;
 }
@@ -109,6 +113,7 @@ void Gene::print(ostream &os) {
 void Gene::optimize(){
 	int size = _v.size();
 	vector<int> p;
+	vector<bool> v(_v.begin(), _v.end());
 	p.resize(size);
 
 	for(int i=0; i<size; i++){
@@ -117,6 +122,7 @@ void Gene::optimize(){
 	random_shuffle(p.begin(), p.end());
 
 	bool improved = true;
+	int f = _fitness;
 	while(improved){
 		improved = false;
 		for(int i=0; i<size; i++){
@@ -126,37 +132,36 @@ void Gene::optimize(){
 			int delta_f = 0;
 			for(it = it_pair.first; it != it_pair.second; it++){
 				pair<int, int> l = it->second;
-				if(_v[p[i]] ^ _v[l.first]) delta_f -= l.second;
+				if(v[p[i]] ^ v[l.first]) delta_f -= l.second;
 				else delta_f += l.second;
 			}
 
 			if(delta_f > 0){
 				improved = true;
-				_v[p[i]] = !_v[p[i]];
-				_fitness += delta_f;
-				_normalize();
+				v[p[i]] = !v[p[i]];
+				f += delta_f;
 			}
 		}
 	}
+	_v.clear();
+	_v.assign(v.begin(), v.end());
+	_fitness = f;
+	_normalize();
 }
 
 ostream &operator<<(ostream &os, const Gene& gene) {
-	int size = gene._v.size();
 #if SHOW_LOG
 	os << "\tfirst : ";
-	for(int i=0; i<size; i++) {
-		if(gene._v[i]) {
-			os << i+1 << " ";
-		}
+	vector<bool>::const_iterator it = gene._v.begin();
+	for(it = gene._v.begin(); it != gene._v.end(); it++) {
+		if(*it) os << it - gene._v.begin() + 1 << " ";
 	}
 	os << endl;
 
 
 	os << "\tsecond : ";
-	for(int i=0; i<size; i++) {
-		if(!gene._v[i]) {
-			os << i+1 << " ";
-		}
+	for(it = gene._v.begin(); it != gene._v.end(); it++) {
+		if(!*it) os << it - gene._v.begin() + 1 << " ";
 	}
 	os << endl;
 

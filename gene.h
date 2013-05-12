@@ -12,6 +12,8 @@ class Gene {
 		static void initLinks(multimap<int, pair<int, int> > *links) { _links = links; };
 		static Gene *crossover(Gene*, Gene*, Crossover, double);
 
+		Gene(void);
+		Gene(const Gene *);
 		void generate(int);
 		int fitness(void) const;
 		int size(void);
