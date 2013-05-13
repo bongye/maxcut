@@ -1,5 +1,3 @@
-rm -f result.out
-
 for vertex_num in 500 750 1000
 do
 	folder="experiment_${vertex_num}"

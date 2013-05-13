@@ -4,6 +4,7 @@ bool compare(Gene *g1, Gene *g2) { return g1->fitness() < g2->fitness(); }
 
 Population::Population(int gene_order, int population_size) : _v(), _sumOfFitness(0) {
 	int f = 0;
+	_generation = 0;
 
 	_minFitness = INT_MAX;
 	for (int i=0; i<population_size; i++) {
@@ -81,6 +82,7 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 	if(_best) delete _best;
 	_best = new Gene( _v.back());
 	_minFitness = _v.front()->fitness();
+	_generation++;
 }
 
 int Population::_select() {
@@ -116,13 +118,19 @@ ostream &operator<<(ostream &os, const Population &population) {
 	return os;
 }
 
-bool Population::isTerminationCondition(double convergence_threshold) {
+double Population::average() {
 	vector<Gene *>::iterator it;
 	double averageFitness = 0.0;
-	double bestFitness = _best->fitness();
 	for(it = _v.begin(); it != _v.end(); it++) {
 		averageFitness += (*it)->fitness();
 	}
 	averageFitness /= (double)_v.size();
+	return averageFitness;
+}
+
+bool Population::isTerminationCondition(double convergence_threshold) {
+	double averageFitness = average();
+	double bestFitness = _best->fitness();
+
 	return (bestFitness - averageFitness) / bestFitness < convergence_threshold;
 }

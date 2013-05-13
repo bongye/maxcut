@@ -117,6 +117,7 @@ int main(int argc, char **argv) {
 #if SHOW_LOG
 	cout << "Generation " << i+1 << endl;
 	cout << "Farm : " << *population << endl;
+	cout << "Average : " << population->average() << endl;
 	cout << endl;
 #endif
 
@@ -127,6 +128,7 @@ int main(int argc, char **argv) {
 #if SHOW_LOG
 		cout << "Generation " << i+1 << endl;
 		cout << "Farm : " << *population << endl;
+		cout << "Average : " << population->average() << endl;
 		cout << endl;
 #endif
 	}
