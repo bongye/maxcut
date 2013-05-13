@@ -11,15 +11,15 @@
 #include <ostream>
 #include <iostream>
 
-#define TIME_LIMIT 30
+#define TIME_LIMIT 170
 #define SHOW_LOG 0
-#define RELEASE 0
+#define RELEASE 1
 #define EXPERIMENT 0
 #define POPULATION_SIZE 100
 #define CROSSOVER 0
 #define MUTATION_RATE 0.3
 #define REPLACE 1
-#define CONVERGENCE_THRESHOLD 0.001
+#define CONVERGENCE_THRESHOLD 0.0001
 #define UNIFORM_THRESHOLD 0.5
 
 enum Crossover {
