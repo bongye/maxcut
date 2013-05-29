@@ -20,10 +20,9 @@ Population::Population(int gene_order, int population_size) : _v(), _sumOfFitnes
 }
 
 
-void Population::nextGeneration(Crossover xover, Replace replace, double uniform_threshold, double mutation_rate) {
+void Population::nextGeneration(Crossover xover, Replace replace, double uniform_threshold, double mutation_rate, Optimize opt) {
 	vector<Gene *>::iterator it;
 
-	// crossover
 	int k = 0;
 	switch(replace) {
 		case STATIC:
@@ -37,40 +36,40 @@ void Population::nextGeneration(Crossover xover, Replace replace, double uniform
 			break;
 	}
 
+	int mutation_count = 0;
+
 	for(int i=0; i<k; i++) {
-		Gene *g1 = _v[_select()];
-		Gene *g2 = _v[_select()];
+		int g1_p = _select();
+		int g2_p = _select();
+		Gene *g1 = _v[g1_p];
+		Gene *g2 = _v[g2_p];
 		int replace_position = 0;
-
+	
+		// crossover
 		Gene *n = Gene::crossover(g1, g2, xover, uniform_threshold);
-		_sumOfFitness += n->fitness();
-		_v.push_back(n);
 
+		// mutation
+		if(n->mutation(mutation_rate)){
+			mutation_count++;
+		}
+
+		// local optimization
+		if(opt == ORIGIN) n->optimize();
+		else n->optimize_new(opt);
+
+		_v.push_back(n);
+		
+		if(n->fitness() > g1->fitness() && n->fitness() > g2->fitness()){
+			if(Gene::numberSameBits(g1, n) > Gene::numberSameBits(g2, n)) replace_position = g1_p;
+			else replace_position = g2_p;
+		} else {
+			replace_position = 0;
+		}
+
+		_sumOfFitness += n->fitness();
 		_sumOfFitness -= _v[replace_position]->fitness();
 		delete _v[replace_position];
 		_v.erase(_v.begin() + replace_position);
-	}
-
-	// mutation
-	int mutation_count = 0;
-
-	for(it = _v.begin(); it != _v.end(); it++) {
-		Gene *gene = *it;
-		int original_fitness = gene->fitness();
-		if (gene->mutation(mutation_rate)) {
-			int revised_fitness = gene->fitness();
-			mutation_count ++;
-			_sumOfFitness += revised_fitness - original_fitness;
-		}
-	}
-
-	// local optimization
-	for(it = _v.begin(); it != _v.end(); it++){
-		Gene *gene = *it;
-		int original_fitness = gene->fitness();
-		gene->optimize();
-		int revised_fitness = gene->fitness();
-		_sumOfFitness += revised_fitness - original_fitness;
 	}
 
 #if SHOW_LOG
@@ -133,4 +132,24 @@ bool Population::isTerminationCondition(double convergence_threshold) {
 	double bestFitness = _best->fitness();
 
 	return (bestFitness - averageFitness) / bestFitness < convergence_threshold;
+}
+
+void Population::restart(void) {
+	int size = _v.size();
+	int gene_order = _v[0]->size();
+	
+
+	// remain only best solution
+	for(int i=0; i<size-1; i++){
+		int f = _v[i]->fitness();
+		delete _v[i];
+		_sumOfFitness -= f;
+
+		Gene *g = new Gene();
+		g->generate(gene_order);
+		_v[i] = g;
+		f = _v[i]->fitness();
+		_sumOfFitness += f;
+	}
+	_minFitness = _v.front()->fitness();
 }

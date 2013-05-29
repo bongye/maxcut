@@ -2,6 +2,7 @@
 
 vector<pair<pair<int, int>, int> > * Gene::_edges = NULL;
 multimap<int, pair<int, int> > * Gene::_links = NULL;
+double Gene::_degree = 0.0;
 
 Gene::Gene()
 {}
@@ -55,6 +56,7 @@ Gene *Gene::crossover(Gene *g1, Gene *g2, Crossover xover, double uniform_thresh
 	Gene *result = new Gene();
 	int size;
 	int mid;
+	int cutpoints[5];
 	switch (xover) {
 		case UNIFORM:
 			size = g1->_v.size();
@@ -70,22 +72,47 @@ Gene *Gene::crossover(Gene *g1, Gene *g2, Crossover xover, double uniform_thresh
 			result->_v.insert(result->_v.end(), g1->_v.begin(), g1->_v.begin() + mid);
 			result->_v.insert(result->_v.end(), g2->_v.begin() + mid, g2->_v.end());
 			break;
+		case FIVE_POINT:
+			size = g1->_v.size();
+			for(int i=0; i<5; i++) {
+				cutpoints[i] = rand() % size;
+			}
+			sort(cutpoints, cutpoints + 5);
+
+			result->_v.insert(result->_v.end(), g1->_v.begin(), g1->_v.begin() + cutpoints[0]);
+			result->_v.insert(result->_v.end(), g2->_v.begin() + cutpoints[0], g2->_v.begin() + cutpoints[1]);
+			result->_v.insert(result->_v.end(), g1->_v.begin() + cutpoints[1], g1->_v.begin() + cutpoints[2]);
+			result->_v.insert(result->_v.end(), g2->_v.begin() + cutpoints[2], g2->_v.begin() + cutpoints[3]);
+			result->_v.insert(result->_v.end(), g1->_v.begin() + cutpoints[3], g1->_v.begin() + cutpoints[4]);
+			result->_v.insert(result->_v.end(), g2->_v.begin() + cutpoints[4], g2->_v.end());
+			break;
 	}
 	result->_normalize();
 	result->_calculateFitness();
 	return result;
 }
 
+int Gene::numberSameBits(Gene *g1, Gene *g2) {
+	int size = g1->_v.size();
+	int v = 0;
+	for(int i=0; i<size; i++){
+		if(g1->_v[i] == g2->_v[i]) v++;
+	}
+	return v;
+}
+
 bool Gene::mutation(double mutation_rate) {
 	// Define your mutation algorithm here ..
 	int size = _v.size();
 	bool change = false;
-	double random = ((double)rand()/(double)RAND_MAX);
 	
-	if(random < mutation_rate) {
-		int l = rand() % size;
-		_v[l] = _v[l] ^ 1;
-		change = true;
+	for(int i=0; i<size; i++){
+		double random = ((double)rand()/(double)RAND_MAX);
+
+		if(random < mutation_rate) {
+			_v[i] = _v[i] ^ 1;
+			change = true;
+		}
 	}
 
 	if(change){
@@ -148,6 +175,103 @@ void Gene::optimize(){
 	_fitness = f;
 	_normalize();
 }
+
+void Gene::optimize_new(Optimize opt){
+	int size = _v.size();
+	bool improved = false;
+	pair<multimap<int, pair<int, int> >::iterator, multimap<int, pair<int, int> >::iterator> it_pair;
+	multimap<int, pair<int, int> >::iterator it;
+	double beta = 40.0;
+	double gamma = 10.0;
+	int alpha = beta > _degree ? floor(beta/gamma) - floor(_degree/gamma) : 0;
+
+	do {
+		vector<int> gains;
+		vector<int> lockGains;
+		vector<int> moved;
+		vector<bool> locks;
+
+		int f = _fitness;
+
+		gains.resize(size);
+		lockGains.resize(size);
+		locks.resize(size);
+		moved.resize(size-1);
+
+		for(int i=0; i<size; i++){
+			it_pair = _links->equal_range(i);
+			int gain = 0;
+			for(it = it_pair.first; it != it_pair.second; it++){
+				pair<int, int> l = it->second;
+				if(_v[i] ^ _v[l.first]) gain -= l.second;
+				else gain += l.second;
+			}
+			gains[i] = gain;
+			lockGains[i] = 0;
+			locks[i] = false;
+		}
+		
+		for(int i=0; i<size-1; i++){
+			int max_p = 0;
+			int max = INT_MIN;
+			for(int p=0; p<size; p++){
+				if(locks[p]) continue;
+				int compare;
+				switch(opt){
+					case FM:
+						compare = gains[p];
+						break;
+					case LG:
+						compare = lockGains[p];
+						break;
+					case RG:
+						compare = gains[p] + alpha * lockGains[p];
+						break;
+				}
+				if(max < compare){
+					max = compare;
+					max_p = p;
+				}
+			}
+			locks[max_p] = true;
+
+			it_pair = _links->equal_range(max_p);
+			for(it = it_pair.first; it != it_pair.second; it++){
+				pair<int, int> l = it->second;
+				if(!locks[l.first]){
+					if(_v[max_p] ^ _v[l.first]){ 
+						gains[l.first] += 2 * l.second;
+						lockGains[l.first] += l.second;
+					} else {
+						gains[l.first] -= 2 * l.second;
+						lockGains[l.first] -= l.second;
+					}
+				}
+			}
+			moved[i] = max_p;
+		}
+		
+		int k = 0;
+		int max = INT_MIN;
+		int sum = 0;
+		for(int i=0; i<size-1; i++){
+			sum += gains[moved[i]];
+			if(max < sum){
+				max = sum;
+				k = i;
+			}
+		}
+		improved = sum > 0;
+		if(improved){
+			for(int i=0; i<=k; i++){
+				_v[moved[i]] = !_v[moved[i]];
+			}
+			_fitness += sum;
+		}
+	} while(improved) ;
+	_normalize();
+}
+
 
 ostream &operator<<(ostream &os, const Gene& gene) {
 #if SHOW_LOG

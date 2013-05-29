@@ -6,9 +6,9 @@ CC = g++
 all : $(TARGET)
 
 $(TARGET) : $(OBJS)
-	$(CC) -g -o $@ $^
+	$(CC) -O3 -g -o $@ $^
 .cpp.o:
-	$(CC) -g -c $<
+	$(CC) -O3 -g -c $<
 
 clean :
 	rm -f $(TARGET) $(OBJS)

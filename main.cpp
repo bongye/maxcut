@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
 	alarm(TIME_LIMIT);
 
 #if EXPERIMENT
-	if(argc != 8) {
-		cout << "Usage : " << argv[0] << " [input file path] [output file path] [pool size] [crossover] [mutation_rate] [replace_policy] [convergence_threshold]" << endl;
+	if(argc != 9) {
+		cout << "Usage : " << argv[0] << " [input file path] [output file path] [pool size] [crossover] [mutation_rate] [replace_policy] [convergence_threshold] [optimize]" << endl;
 		return -1;
 	}
 #else
@@ -94,6 +94,14 @@ int main(int argc, char **argv) {
 	Gene::initEdges(&edges);
 	Gene::initLinks(&links);
 
+	double degree = 0.0;
+	double sum = 0.0;
+	for(int i=0; i<gene_order; i++){
+		sum += links.count(i);
+	}
+	degree = sum / (double)gene_order;
+	Gene::initDegree(degree);
+
 #if EXPERIMENT
 	int population_size = atoi(argv[3]);
 	Crossover xover = (Crossover)atoi(argv[4]);
@@ -101,6 +109,7 @@ int main(int argc, char **argv) {
 	double uniform_threshold = UNIFORM_THRESHOLD;
 	Replace replace = (Replace)atoi(argv[6]);
 	double convergence_threshold = atof(argv[7]);
+	Optimize opt = (Optimize)atoi(argv[8])
 #else
 	int population_size = POPULATION_SIZE;
 	Crossover xover = (Crossover)CROSSOVER;
@@ -108,6 +117,7 @@ int main(int argc, char **argv) {
 	double uniform_threshold = UNIFORM_THRESHOLD;
 	Replace replace = (Replace)REPLACE;
 	double convergence_threshold = CONVERGENCE_THRESHOLD;
+	Optimize opt = (Optimize)OPTIMIZE;
 #endif
 
 	srand(time(NULL));
@@ -121,9 +131,10 @@ int main(int argc, char **argv) {
 	cout << endl;
 #endif
 
-	while(!population->isTerminationCondition(convergence_threshold)) {
-		population->nextGeneration(xover, replace, uniform_threshold, mutation_rate);
+	while(true) {
+		population->nextGeneration(xover, replace, uniform_threshold, mutation_rate, opt);
 		i++;
+
 
 #if SHOW_LOG
 		cout << "Generation " << i+1 << endl;
@@ -131,6 +142,10 @@ int main(int argc, char **argv) {
 		cout << "Average : " << population->average() << endl;
 		cout << endl;
 #endif
+
+		if(population->isTerminationCondition(convergence_threshold)){
+			population->restart();
+		}
 	}
 
 #if SHOW_LOG
