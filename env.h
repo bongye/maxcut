@@ -13,16 +13,16 @@
 #include <climits>
 
 #define TIME_LIMIT 175
-#define SHOW_LOG 0
+#define SHOW_LOG 1
 #define RELEASE 0
-#define EXPERIMENT 1
-#define POPULATION_SIZE 50
+#define EXPERIMENT 0
+#define POPULATION_SIZE 100
 #define CROSSOVER 0
 #define MUTATION_RATE 0.01
-#define REPLACE 2
-#define CONVERGENCE_THRESHOLD 0.001
+#define REPLACE 0
+#define CONVERGENCE_THRESHOLD 0.01
 #define UNIFORM_THRESHOLD 0.5
-#define OPTIMIZE 3
+#define OPTIMIZE 1
 
 enum Crossover {
 	UNIFORM,

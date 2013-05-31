@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 	double uniform_threshold = UNIFORM_THRESHOLD;
 	Replace replace = (Replace)atoi(argv[6]);
 	double convergence_threshold = atof(argv[7]);
-	Optimize opt = (Optimize)atoi(argv[8])
+	Optimize opt = (Optimize)atoi(argv[8]);
 #else
 	int population_size = POPULATION_SIZE;
 	Crossover xover = (Crossover)CROSSOVER;

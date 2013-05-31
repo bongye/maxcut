@@ -151,5 +151,6 @@ void Population::restart(void) {
 		f = _v[i]->fitness();
 		_sumOfFitness += f;
 	}
+	sort(_v.begin(), _v.end(), compare);
 	_minFitness = _v.front()->fitness();
 }
